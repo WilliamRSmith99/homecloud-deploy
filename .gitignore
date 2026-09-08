@@ -1,0 +1,42 @@
+# --- OS / editor cruft ---
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# --- Helm chart dependencies pulled at build time ---
+# `kustomize build --enable-helm` and `helm dependency build` drop upstream
+# charts into a local charts/ dir. Argo re-pulls them on every sync, so the
+# committed copy is just noise. Delete this line (and `git add -f`) if you
+# decide to vendor charts on purpose for offline / hermetic bootstrap builds.
+charts/
+*.tgz
+
+# --- Locally rendered manifests (debugging only, never the source of truth) ---
+*.rendered.yaml
+*.rendered.yml
+rendered/
+dist/
+
+# --- Secrets: commit SealedSecret manifests only ---
+# Never the plaintext inputs, TLS material, or the Sealed Secrets controller
+# private key (losing OR leaking that key is the worst case in this repo).
+*.pem
+*.key
+*-key.yaml
+*-key.yml
+sealed-secrets-key*.yaml
+*.dec.yaml
+*.dec.yml
+*.unsealed.yaml
+*.plaintext.yaml
+.env
+.env.*
+kubeconfig
+*.kubeconfig
+.kube/
