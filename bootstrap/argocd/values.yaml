@@ -1,0 +1,35 @@
+crds:
+  install: true
+  keep: true                 # CRDs survive an uninstall
+
+dex:
+  enabled: false             # no SSO; saves ~100 MB
+notifications:
+  enabled: false             # enable when you wire Discord alerts
+
+configs:
+  cm:
+    kustomize.buildOptions: --enable-helm
+  params:
+    server.insecure: false
+
+controller:
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { memory: 512Mi }
+repoServer:
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits:   { memory: 512Mi }   # manifest gen spikes; keep headroom
+server:
+  resources:
+    requests: { cpu: 25m, memory: 128Mi }
+    limits:   { memory: 256Mi }
+redis:
+  resources:
+    requests: { cpu: 25m, memory: 64Mi }
+    limits:   { memory: 128Mi }
+applicationSet:
+  resources:
+    requests: { cpu: 25m, memory: 64Mi }
+    limits:   { memory: 128Mi }
