@@ -10,6 +10,7 @@ explicit.
 
 | Wave | Contents | Why |
 |-----:|----------|-----|
+| `-3` | argocd (self-managed) | Argo reconciles its own chart before it manages anything else |
 | `-2` | sealed-secrets, cert-manager, cnpg-operator | CRDs must exist before anything references them |
 | `-1` | traefik, tailscale-operator, cloudflared | Networking before workloads |
 | `0`  | monitoring (kube-prometheus-stack, Loki, Grafana), argo-workflows, argo-events, actions-runner-controller | Platform services |

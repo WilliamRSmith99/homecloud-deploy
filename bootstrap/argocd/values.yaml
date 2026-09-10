@@ -10,6 +10,7 @@ notifications:
 configs:
   cm:
     kustomize.buildOptions: --enable-helm
+    url: https://argocd.tail1a1d19.ts.net
   params:
     server.insecure: false
 
