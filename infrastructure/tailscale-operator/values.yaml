@@ -1,0 +1,13 @@
+# operator authenticates from the pre-created `operator-oauth` Secret (SealedSecret below),
+# so no OAuth creds inline here
+oauth: {}
+
+operatorConfig:
+  hostname: tailscale-operator
+
+# proxy devices the operator creates get this tag (must be in tagOwners above)
+proxyConfig:
+  defaultTags: "tag:k8s"
+
+apiServerProxyConfig:
+  mode: "false"   # you don't need the kube-apiserver proxy for this

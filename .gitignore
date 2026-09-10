@@ -40,3 +40,4 @@ sealed-secrets-key*.yaml
 kubeconfig
 *.kubeconfig
 .kube/
+*.secret.yaml
