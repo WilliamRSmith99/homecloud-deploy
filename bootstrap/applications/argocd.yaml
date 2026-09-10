@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:WilliamRSmith99/homecloud-deploy
+    targetRevision: main
+    path: bootstrap/argocd
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions:
+      - ServerSideApply=true          # applicationsets CRD > 256 KB; client-side apply blows the annotation limit
+      - RespectIgnoreDifferences=true # so selfHeal doesn't revert the fields below
+  ignoreDifferences:
+    # the server mutates argocd-secret at runtime (server signature key, admin
+    # password mtime). Without this, selfHeal rotates the key every sync and
+    # logs everyone out.
+    - group: ""
+      kind: Secret
+      name: argocd-secret
+      jsonPointers:
+        - /data

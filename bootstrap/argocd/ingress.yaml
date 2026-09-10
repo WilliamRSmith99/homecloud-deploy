@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd
+  namespace: argocd
+  annotations:
+    tailscale.com/hostname: argocd   # pins the MagicDNS name — this is the "static" part
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - argocd            # operator expands to argocd.<tailnet>.ts.net for the cert
+  rules:
+    - host: argocd
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 443
