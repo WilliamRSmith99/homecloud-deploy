@@ -1,0 +1,25 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: homelab-pg
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16-standard-trixie
+  bootstrap:
+    initdb:
+      database: agentmem
+      owner: agentmem
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS vector;
+  storage:
+    storageClass: local-path
+    size: 30Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+  affinity:
+    nodeSelector:
+      homelab.io/storage: "true"
