@@ -3,4 +3,7 @@ kind: Kustomization
 namespace: cnpg
 resources:
   - namespaces.yaml
+  - oci-s3-creds-sealedsecret.yaml
   - cluster.yaml
+  - objectstore.yaml
+  - scheduled-backup.yaml

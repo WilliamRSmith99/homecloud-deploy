@@ -1,0 +1,22 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: homelab-pg-store
+spec:
+  configuration:
+    destinationPath: s3://homecloud-pg-backup/cnpg
+    endpointURL: https://idaqzaxsukow.compat.objectstorage.us-ashburn-1.oraclecloud.com
+    s3Credentials:
+      accessKeyId:
+        name: oci-s3-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: oci-s3-creds
+        key: SECRET_ACCESS_KEY
+    wal:
+      compression: gzip
+  retentionPolicy: "14d"
+  instanceSidecarConfiguration:
+    env:
+      - name: AWS_DEFAULT_REGION
+        value: us-ashburn-1
