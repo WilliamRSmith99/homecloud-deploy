@@ -23,3 +23,8 @@ spec:
   affinity:
     nodeSelector:
       homelab.io/storage: "true"
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: homelab-pg-store
