@@ -1,0 +1,23 @@
+crds:
+  enabled: true
+  keep: true
+
+prometheus:
+  prometheusSpec:
+    retention: 15d
+    retentionSize: 20GB
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 200m
+      limits:
+        memory: 4Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 25Gi
