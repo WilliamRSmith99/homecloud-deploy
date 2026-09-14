@@ -1,0 +1,72 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: homecloud-alerts
+  namespace: monitoring
+  labels:
+    # Matches kube-prometheus-stack's ruleSelector, same reason as the
+    # release label on infrastructure/loki/servicemonitor.yaml and
+    # data/postgres-cluster/podmonitor.yaml.
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: homecloud.rules
+      rules:
+        - alert: NodeDown
+          expr: up{job="node-exporter"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Node {{ $labels.instance }} is down"
+            description: "node-exporter on {{ $labels.instance }} has been unreachable for 5 minutes."
+
+        - alert: DiskFilling
+          expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100 > 80
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.mountpoint }} on {{ $labels.instance }} is over 80% full"
+            description: "{{ $value | printf \"%.1f\" }}% used on {{ $labels.mountpoint }} ({{ $labels.instance }})."
+
+        - alert: PostgresDown
+          expr: cnpg_collector_up{cluster="homelab-pg"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "homelab-pg's Postgres instance is down"
+            description: "cnpg_collector_up has reported 0 for homelab-pg for 2 minutes."
+
+        - alert: CNPGBackupStale
+          # HC-9's PodMonitor also picks up plugin-barman-cloud's own metrics
+          # (same :9187 endpoint as CNPG core) — but the plugin only exposes
+          # last-*backup*-timestamp metrics, not a WAL-archiving-staleness
+          # one, so this tracks backup cadence rather than continuous
+          # archiving as HC-10 originally assumed. Threshold is one daily
+          # schedule (data/postgres-cluster/scheduled-backup.yaml, 04:00)
+          # plus a 3h buffer, not the ticket's literal 6h — 6h would fire
+          # every day between backups on a 24h schedule.
+          # No cluster= filter: label name isn't documented and this
+          # environment only ever has one Postgres cluster, so it's
+          # unambiguous either way.
+          expr: (time() - barman_cloud_cloudnative_pg_io_last_available_backup_timestamp) > 97200
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "homelab-pg has no successful backup in over 27 hours"
+            description: "Last available backup was {{ $value | printf \"%.0f\" }}s ago; the schedule expects one every 24h."
+
+        - alert: CertExpiringSoon
+          # exported_namespace: cert-manager relabels its own "namespace"
+          # metric label to this, to avoid colliding with Prometheus's own
+          # target-namespace label of the same name.
+          expr: (certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 14
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Certificate {{ $labels.name }} in {{ $labels.exported_namespace }} expires in under 14 days"
+            description: "{{ $value | printf \"%.1f\" }} days until certmanager_certificate_expiration_timestamp_seconds for {{ $labels.name }}."

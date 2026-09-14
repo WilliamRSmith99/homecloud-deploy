@@ -1,0 +1,23 @@
+# Hand-written, matching infrastructure/loki/servicemonitor.yaml — the
+# chart's own prometheus.servicemonitor.enabled toggle defaults to false
+# and, like Loki's, would hit the same Capabilities.APIVersions gate this
+# repo's ArgoCD build can't satisfy anyway. Targets the controller Service
+# the chart already creates (prometheus.enabled: true is the chart
+# default — no values.yaml change needed for that part).
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+  labels:
+    # Matches kube-prometheus-stack's serviceMonitorSelector.
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cert-manager
+      app.kubernetes.io/instance: cert-manager
+      app.kubernetes.io/component: controller
+  endpoints:
+    - port: http-metrics
+      path: /metrics

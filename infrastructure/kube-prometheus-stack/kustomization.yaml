@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: kube-prometheus-stack
 resources:
   - namespaces.yaml
+  - prometheusrule.yaml
 helmCharts:
   - name: kube-prometheus-stack
     repo: oci://ghcr.io/prometheus-community/charts
