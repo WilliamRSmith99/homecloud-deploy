@@ -1,0 +1,21 @@
+# Hand-written rather than via a chart toggle, matching
+# infrastructure/loki/servicemonitor.yaml: CNPG's own Helm chart isn't in
+# play here (the Cluster CRD is applied directly), and this repo's ArgoCD
+# build has no reason to route metrics scraping through a chart anyway.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: homelab-pg
+  labels:
+    # Matches kube-prometheus-stack's podMonitorSelector so Prometheus picks
+    # this up with no extra wiring (chart default leaves
+    # podMonitorSelectorNilUsesHelmValues: true, which requires this label).
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      # CNPG applies this label to every instance pod in the cluster —
+      # no separate exporter Service to target, unlike vanilla Postgres.
+      cnpg.io/cluster: homelab-pg
+  podMetricsEndpoints:
+    - port: metrics
