@@ -1,0 +1,91 @@
+# HC-7 — Alloy DaemonSet ships Kubernetes pod logs to Loki.
+#
+# Uses loki.source.kubernetes (tails via the kubelet API) instead of
+# hostPath + local.file_match. The chart's default rbac.rules already
+# grant pods/pods/log/namespaces get/list/watch, and controller.type
+# already defaults to 'daemonset' — nothing to override for either.
+
+crds:
+  # Was "enabled"/"keep" — not real keys for this chart (that's the
+  # kube-prometheus-stack/cert-manager shape). The chart's own default
+  # (crds.create: true) installs the PodLogs CRD either way; set
+  # explicitly so it's not accidentally relying on a chart default.
+  create: true
+
+controller:
+  # k3s server nodes aren't tainted by default (no --node-taint in the
+  # k3s install command — that's kubeadm-only behavior), so this is
+  # precautionary rather than required today. Verify with
+  # `kubectl get pods -n alloy -o wide` — one Running pod per node,
+  # oci-cp included.
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
+alloy:
+  configMap:
+    content: |
+      // Discover this node's Pods only (each DaemonSet replica watches its
+      // own node — HOSTNAME is overridden by the chart to spec.nodeName via
+      // downward API, not the container's own hostname).
+      discovery.kubernetes "pod" {
+        role = "pod"
+        selectors {
+          role  = "pod"
+          field = "spec.nodeName=" + coalesce(sys.env("HOSTNAME"), constants.hostname)
+        }
+      }
+
+      discovery.relabel "pod_logs" {
+        targets = discovery.kubernetes.pod.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          action        = "replace"
+          target_label  = "namespace"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          action        = "replace"
+          target_label  = "pod"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          action        = "replace"
+          target_label  = "container"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_container_name"]
+          action        = "replace"
+          target_label  = "job"
+          separator     = "/"
+          replacement   = "$1"
+        }
+      }
+
+      loki.source.kubernetes "pod_logs" {
+        targets    = discovery.relabel.pod_logs.output
+        forward_to = [loki.process.pod_logs.receiver]
+      }
+
+      loki.process "pod_logs" {
+        stage.static_labels {
+          values = {
+            cluster = "homecloud",
+          }
+        }
+
+        forward_to = [loki.write.default.receiver]
+      }
+
+      // In-cluster Loki, single-binary mode (HC-6) — service name is the
+      // Helm release name ("loki") in the "monitoring" namespace.
+      loki.write "default" {
+        endpoint {
+          url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+        }
+      }
