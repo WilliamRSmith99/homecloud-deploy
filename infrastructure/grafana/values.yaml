@@ -1,0 +1,33 @@
+# HC-8 — Grafana with Prometheus + Loki wired up as provisioned (not
+# click-configured) datasources, per R-33: config must come back from git on
+# a pod restart, not from whatever was last set in the UI.
+
+admin:
+  existingSecret: grafana-admin-credentials
+  userKey: admin-user
+  passwordKey: admin-password
+
+# Rendered straight into the chart's own ConfigMap and mounted at
+# /etc/grafana/provisioning/datasources/ — no sidecar needed for this,
+# since Grafana and its datasources are provisioned by the same release.
+# (The sidecar pattern is for ConfigMaps owned by *other* releases; HC-12
+# will turn it on for dashboards.)
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://kube-prometheus-stack-prometheus.monitoring:9090
+        isDefault: true
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki.monitoring:3100
+
+# No PVC — dashboards and datasources both live in git and are re-applied on
+# every restart. The only thing local disk would buy is saved UI state
+# (starred dashboards, org prefs), which isn't worth the storage budget here.
+persistence:
+  enabled: false
