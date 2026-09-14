@@ -1,0 +1,97 @@
+# HC-6 — single-binary Loki, OCI S3-compatible backend instead of a large
+# local PVC. See infrastructure/loki/kustomization.yaml for the S3 credentials
+# SealedSecret this depends on (loki-s3-creds) — it is NOT created by this
+# chart and must exist before Loki will start writing chunks successfully.
+
+deploymentMode: SingleBinary
+
+# The chart defaults read/write/backend (SimpleScalable mode) to 3 replicas
+# each regardless of deploymentMode — must zero them explicitly or the chart
+# refuses to render ("more than zero replicas configured for both...").
+read:
+  replicas: 0
+write:
+  replicas: 0
+backend:
+  replicas: 0
+
+global:
+  # -config.expand-env=true lets the ${...} references below pull from env
+  # vars instead of landing in the rendered ConfigMap as plaintext.
+  extraArgs:
+    - -config.expand-env=true
+  extraEnvFrom:
+    - secretRef:
+        name: loki-s3-creds
+
+loki:
+  # Single Grafana instance, single user — no need for Loki's multi-tenant
+  # X-Scope-OrgID header plumbing.
+  auth_enabled: false
+
+  commonConfig:
+    replication_factor: 1
+
+  # No chart default — required for any real (non-test) install.
+  schemaConfig:
+    configs:
+      - from: "2026-09-13"
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+
+  storage:
+    type: s3
+    bucketNames:
+      chunks: homecloud-loki-logs
+    s3:
+      endpoint: https://idaqzaxsukow.compat.objectstorage.us-ashburn-1.oraclecloud.com
+      region: us-ashburn-1
+      # OCI's S3-compat endpoint needs path-style addressing — the S3 default
+      # (virtual-hosted-style) won't resolve against it.
+      s3ForcePathStyle: true
+      accessKeyId: ${ACCESS_KEY_ID}
+      secretAccessKey: ${SECRET_ACCESS_KEY}
+
+  limits_config:
+    retention_period: 336h # 14d
+
+  compactor:
+    # Scratch space for compacting index files pulled from S3 — real disk
+    # usage even though the bulk of the data lives in the bucket.
+    working_directory: /var/loki/compactor
+    retention_enabled: true
+
+# Local PVC now only holds the WAL, query-result cache, and compactor scratch
+# space — not the log data itself, so it stays small regardless of retention.
+singleBinary:
+  replicas: 1
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: local-path
+
+# No ruler/alerting rules through Loki — Prometheus + Alertmanager already
+# own alerting (cp-07-observability.md).
+ruler:
+  enabled: false
+
+# Single-binary mode with one Grafana consumer has no need for the nginx
+# gateway that fronts read/write splits in SimpleScalable/Distributed mode.
+gateway:
+  enabled: false
+
+# Chart defaults spin up two memcached Deployments for query/chunk caching —
+# unnecessary overhead at this log volume. Revisit if query latency ever
+# becomes a real problem.
+resultsCache:
+  enabled: false
+
+chunksCache:
+  enabled: false
+
+# ServiceMonitor is hand-written in servicemonitor.yaml, not toggled via
+# monitoring.serviceMonitor — see the comment there for why.
