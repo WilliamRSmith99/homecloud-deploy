@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: cert-manager
 resources:
   - namespaces.yaml
+  - servicemonitor.yaml
 helmCharts:
   - name: cert-manager
     repo:  https://charts.jetstack.io
