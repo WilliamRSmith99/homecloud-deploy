@@ -17,14 +17,30 @@ datasources:
     apiVersion: 1
     datasources:
       - name: Prometheus
+        # Pinned rather than chart-generated, so provisioned dashboards
+        # (infrastructure/grafana/dashboards/, HC-12) can reference it by a
+        # UID known ahead of time instead of one Grafana would otherwise
+        # assign randomly at creation.
+        uid: prometheus
         type: prometheus
         access: proxy
         url: http://kube-prometheus-stack-prometheus.monitoring:9090
         isDefault: true
       - name: Loki
+        uid: loki
         type: loki
         access: proxy
         url: http://loki.monitoring:3100
+
+# HC-12 — dashboards are ConfigMaps (infrastructure/grafana/dashboards/)
+# labeled for this sidecar to pick up, same provisioning-as-code story as
+# the datasources above: nothing click-configured, so a pod restart comes
+# back from git.
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
 
 # No PVC — dashboards and datasources both live in git and are re-applied on
 # every restart. The only thing local disk would buy is saved UI state

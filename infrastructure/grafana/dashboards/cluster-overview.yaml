@@ -1,0 +1,159 @@
+# HC-12 — node health, CPU, memory, disk, and pod status, sourced from
+# node-exporter + kube-state-metrics (already scraping since 07a). Delete
+# this pod: the sidecar re-imports it on the next Grafana start, since it
+# lives here, not in Grafana's own storage.
+apiVersion: v1
+data:
+  cluster-overview.json: |
+    {
+      "title": "Cluster Overview",
+      "uid": "homecloud-cluster-overview",
+      "schemaVersion": 39,
+      "version": 1,
+      "editable": true,
+      "timezone": "browser",
+      "refresh": "30s",
+      "time": { "from": "now-6h", "to": "now" },
+      "tags": ["homecloud", "cluster"],
+      "panels": [
+        {
+          "id": 1,
+          "title": "Nodes Ready",
+          "type": "stat",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum(kube_node_status_condition{condition=\"Ready\", status=\"true\"})",
+              "legendFormat": "Ready"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "none" }, "overrides": [] }
+        },
+        {
+          "id": 2,
+          "title": "node-exporter Targets Up",
+          "type": "stat",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum(up{job=\"node-exporter\"})",
+              "legendFormat": "Up"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "none" }, "overrides": [] }
+        },
+        {
+          "id": 3,
+          "title": "Running Pods",
+          "type": "stat",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum(kube_pod_status_phase{phase=\"Running\"})",
+              "legendFormat": "Running"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "none" }, "overrides": [] }
+        },
+        {
+          "id": 4,
+          "title": "Pods Not Running (Pending/Failed/Unknown)",
+          "type": "stat",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum(kube_pod_status_phase{phase=~\"Pending|Failed|Unknown\"})",
+              "legendFormat": "Not Running"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 5,
+          "title": "CPU Usage by Node",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+          "targets": [
+            {
+              "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+              "legendFormat": "{{instance}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "percent", "min": 0, "max": 100 },
+            "overrides": []
+          }
+        },
+        {
+          "id": 6,
+          "title": "Memory Usage by Node",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+          "targets": [
+            {
+              "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+              "legendFormat": "{{instance}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "percent", "min": 0, "max": 100 },
+            "overrides": []
+          }
+        },
+        {
+          "id": 7,
+          "title": "Root Filesystem Usage by Node",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+          "targets": [
+            {
+              "expr": "(1 - (node_filesystem_avail_bytes{mountpoint=\"/\", fstype!=\"tmpfs\"} / node_filesystem_size_bytes{mountpoint=\"/\", fstype!=\"tmpfs\"})) * 100",
+              "legendFormat": "{{instance}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "percent", "min": 0, "max": 100 },
+            "overrides": []
+          }
+        },
+        {
+          "id": 8,
+          "title": "Running Pods by Namespace",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+          "targets": [
+            {
+              "expr": "sum by (namespace) (kube_pod_status_phase{phase=\"Running\"})",
+              "legendFormat": "{{namespace}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "none", "min": 0 }, "overrides": [] }
+        }
+      ]
+    }
+kind: ConfigMap
+metadata:
+  name: cluster-overview-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"

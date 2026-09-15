@@ -6,6 +6,7 @@ resources:
   # kustomization will build or Grafana will fall back to the chart's
   # plaintext default admin password.
   - admin-credentials-sealedsecret.yaml
+  - dashboards/cluster-overview.yaml
 helmCharts:
   - name: grafana
     repo: https://grafana-community.github.io/helm-charts
