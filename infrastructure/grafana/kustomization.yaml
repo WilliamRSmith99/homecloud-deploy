@@ -7,6 +7,7 @@ resources:
   # plaintext default admin password.
   - admin-credentials-sealedsecret.yaml
   - dashboards/cluster-overview.yaml
+  - ingress.yaml
 helmCharts:
   - name: grafana
     repo: https://grafana-community.github.io/helm-charts
