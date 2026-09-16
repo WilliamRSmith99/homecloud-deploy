@@ -69,6 +69,8 @@ loki:
 # space — not the log data itself, so it stays small regardless of retention.
 singleBinary:
   replicas: 1
+  nodeSelector:
+    homelab.io/storage: "true"
   persistence:
     enabled: true
     size: 5Gi
