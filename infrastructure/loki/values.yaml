@@ -57,13 +57,13 @@ loki:
       secretAccessKey: ${SECRET_ACCESS_KEY}
 
   limits_config:
-    retention_period: 336h # 14ddelete-request-store
+    retention_period: 336h # 14d
 
   compactor:
     # Scratch space for compacting index files pulled from S3 — real disk
     # usage even though the bulk of the data lives in the bucket.
     working_directory: /var/loki/compactor
-    delete-request-store: s3
+    delete_request_store: s3
     retention_enabled: true
 
 # Local PVC now only holds the WAL, query-result cache, and compactor scratch
