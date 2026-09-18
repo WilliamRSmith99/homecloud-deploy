@@ -63,7 +63,7 @@ loki:
     # Scratch space for compacting index files pulled from S3 — real disk
     # usage even though the bulk of the data lives in the bucket.
     working_directory: /var/loki/compactor
-    delete_request_store: s3
+    delete_request_store: filesystem
     retention_enabled: true
 
 # Local PVC now only holds the WAL, query-result cache, and compactor scratch
