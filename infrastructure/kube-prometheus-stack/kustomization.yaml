@@ -1,9 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: kube-prometheus-stack
+namespace: monitoring
 resources:
   - namespaces.yaml
   - prometheusrule.yaml
+  - discord-webhook-sealedsecret.yaml
 helmCharts:
   - name: kube-prometheus-stack
     repo: oci://ghcr.io/prometheus-community/charts
