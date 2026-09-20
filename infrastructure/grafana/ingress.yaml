@@ -9,7 +9,7 @@ spec:
   ingressClassName: tailscale
   tls:
     - hosts:
-        - grafana            # operator expands to argocd.<tailnet>.ts.net for the cert
+        - grafana            # operator expands to grafana.<tailnet>.ts.net for the cert
   rules:
     - host: grafana
       http:
@@ -18,6 +18,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: grafana-server
+                name: grafana
                 port:
-                  number: 443
+                  number: 80
