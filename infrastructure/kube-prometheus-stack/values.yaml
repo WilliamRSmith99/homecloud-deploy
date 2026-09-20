@@ -22,20 +22,16 @@ prometheus:
             requests:
               storage: 25Gi
 
-# HC-10 — route alerts to the Discord relay (infrastructure/discord-relay/).
-# Helm deep-merges this into the chart's own default alertmanager.config
-# (values.yaml on prometheus-community/helm-charts) rather than replacing
-# it, so what's NOT respecified here still applies: inhibit_rules, and the
-# route.routes sub-rule that silently swallows the synthetic Watchdog
-# alert via the 'null' receiver — which is why that receiver stays defined
-# below even though nothing here targets it directly.
 alertmanager:
+  alertmanagerSpec:
+    secrets:
+      - discord-webhook
   config:
     route:
       receiver: discord
     receivers:
       - name: 'null'
       - name: discord
-        webhook_configs:
-          - url: http://alertmanager-discord.monitoring.svc.cluster.local:9094
+        discord_configs:
+          - webhook_url_file: /etc/alertmanager/secrets/discord-webhook/DISCORD_WEBHOOK
             send_resolved: true
