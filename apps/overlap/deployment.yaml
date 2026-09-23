@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: overlap
+  namespace: overlap
+  labels:
+    app: overlap
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: overlap
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: overlap
+    spec:
+      imagePullSecrets:
+        - name: overlap-premium-deploy-key
+      containers:
+        - name: overlap
+          image: ghcr.io/smithlabs-io/overlap-premium:sha-feb849a
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DATA_DIR
+              value: /app/data
+          envFrom:
+            - secretRef:
+                name:  discord-token
+            - configMapRef:
+                name: overlap-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: overlap-data
