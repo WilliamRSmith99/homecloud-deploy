@@ -20,6 +20,8 @@ spec:
     spec:
       imagePullSecrets:
         - name: overlap-premium-deploy-key
+      nodeSelector:
+        homelab.io/storage: "true"
       containers:
         - name: overlap
           image: ghcr.io/smithlabs-io/overlap-premium:sha-feb849a
