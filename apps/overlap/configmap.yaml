@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: overlap-config
+  namespace: overlap
+data:
+  LOG_LEVEL: "info"
+  LOG_JSON: "true"
+  # Tier limits — populate once values are known
+  TIER_FREE_MAX_SERVERS: "5"
+  # TIER_PREMIUM_MAX_SERVERS: "25"
