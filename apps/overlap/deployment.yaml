@@ -22,6 +22,14 @@ spec:
         - name: overlap-premium-deploy-key
       nodeSelector:
         homelab.io/storage: "true"
+      initContainers:
+        - name: seed-reference-data
+          image: ghcr.io/smithlabs-io/overlap-premium:sha-feb849a
+          imagePullPolicy: IfNotPresent
+          command: ["cp", "/app/data/timezone_data.json", "/mnt/data/timezone_data.json"]
+          volumeMounts:
+            - name: data
+              mountPath: /mnt/data
       containers:
         - name: overlap
           image: ghcr.io/smithlabs-io/overlap-premium:sha-feb849a
