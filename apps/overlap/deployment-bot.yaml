@@ -24,15 +24,9 @@ spec:
         - name: overlap-premium-deploy-key
       containers:
         - name: overlap-bot
-          # DO NOT SYNC YET — sha-22c3710 is the first Postgres-era build
-          # (has DATABASE_URL, dbmate, no SQLite), but it still can't run:
-          # it was built from Overlap main before OVERLAP-29 (missing
-          # __main__.py — `python -m overlap` fails outright) merged. Bump
-          # this tag once Overlap-Premium rebuilds after that PR lands. See
-          # the PR description for the full sequencing.
-          image: ghcr.io/smithlabs-io/overlap-premium:sha-22c3710
+          image: ghcr.io/smithlabs-io/overlap-premium:sha-f43558c
           imagePullPolicy: IfNotPresent
-          command: ["python", "-m", "overlap"]
+          command: [ "python", "-m", "overlap" ]
           env:
             - name: DB_USER
               valueFrom:
