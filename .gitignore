@@ -23,6 +23,9 @@ charts/
 rendered/
 dist/
 
+# --- Ignore the Knowledge base ---
+kb/
+
 # --- Secrets: commit SealedSecret manifests only ---
 # Never the plaintext inputs, TLS material, or the Sealed Secrets controller
 # private key (losing OR leaking that key is the worst case in this repo).

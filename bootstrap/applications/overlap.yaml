@@ -4,7 +4,10 @@ metadata:
   name: overlap
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    # sync-waves.md documents apps at wave 2 (needs Postgres + networking).
+    # This was 0 while Overlap used a local PVC and needed neither — now that
+    # it depends on postgres-cluster (wave 1), it has to sync after it.
+    argocd.argoproj.io/sync-wave: "2"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
