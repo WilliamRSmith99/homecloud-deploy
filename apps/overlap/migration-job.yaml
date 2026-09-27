@@ -19,9 +19,9 @@ spec:
       containers:
         - name: migrate
           # Same image and version gate as deployment-bot.yaml/deployment-web.yaml.
-          image: ghcr.io/smithlabs-io/overlap-premium:sha-22c3710
+          image: ghcr.io/smithlabs-io/overlap-premium:sha-f43558c
           imagePullPolicy: IfNotPresent
-          command: ["./migrate.sh"]
+          command: [ "./migrate.sh" ]
           env:
             - name: DB_USER
               valueFrom:

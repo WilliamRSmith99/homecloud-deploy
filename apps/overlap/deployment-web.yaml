@@ -25,9 +25,9 @@ spec:
       containers:
         - name: overlap-web
           # See deployment-bot.yaml's note — same image, same version gate.
-          image: ghcr.io/smithlabs-io/overlap-premium:sha-22c3710
+          image: ghcr.io/smithlabs-io/overlap-premium:sha-f43558c
           imagePullPolicy: IfNotPresent
-          command: ["python", "-m", "overlap.web"]
+          command: [ "python", "-m", "overlap.web" ]
           env:
             - name: DB_USER
               valueFrom:
