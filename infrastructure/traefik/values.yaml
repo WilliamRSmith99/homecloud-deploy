@@ -1,0 +1,29 @@
+deployment:
+  replicas: 2
+
+# Chart default is LoadBalancer, which on k3s means ServiceLB binds a host
+# port on every node. HC-30's cloudflared reaches Traefik in-cluster, so
+# there's no host-facing listener to route to it — ClusterIP is enough.
+service:
+  spec:
+    type: ClusterIP
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# Hard anti-affinity, not preferred: with only two nodes and two replicas,
+# "preferred" would still let the scheduler double up under pressure and
+# quietly defeat the point of a second replica.
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: '{{ template "traefik.name" . }}'
+            app.kubernetes.io/instance: '{{ .Release.Name }}-{{ include "traefik.namespace" . }}'
+        topologyKey: kubernetes.io/hostname
