@@ -5,6 +5,12 @@ resources:
   - configmap.yaml
   - discord-token-sealedsecret.yaml
   - overlap-premium-deploy-key-sealedsecret.yaml
+  # Same username/password as data/postgres-cluster/overlap-db-role-sealedsecret.yaml,
+  # sealed a second time for this namespace. Secrets (sealed or not) are
+  # namespace-scoped and so is secretKeyRef in a Pod spec — the cnpg-namespace
+  # copy is what DatabaseRole's passwordSecret needs to exist in Postgres;
+  # this copy is what the Deployments/Job below actually read at runtime.
+  - overlap-db-role-sealedsecret.yaml
   - migration-job.yaml
   - deployment-bot.yaml
   - deployment-web.yaml
