@@ -8,3 +8,9 @@ resources:
   - objectstore.yaml
   - scheduled-backup.yaml
   - podmonitor.yaml
+  # Overlap's database — see apps/overlap/ for the app itself. Declared here,
+  # not there, because Database/DatabaseRole reference the Cluster by name in
+  # the same namespace (cnpg), not overlap's own namespace.
+  - overlap-db-role-sealedsecret.yaml
+  - overlap-databaserole.yaml
+  - overlap-database.yaml

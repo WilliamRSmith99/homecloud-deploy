@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: overlap-bot
+  namespace: overlap
+  labels:
+    app: overlap-bot
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: overlap-bot
+  strategy:
+    # One Discord gateway connection on one token. A rolling update briefly
+    # runs two pods against the same token — Recreate, always.
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: overlap-bot
+    spec:
+      imagePullSecrets:
+        - name: overlap-premium-deploy-key
+      containers:
+        - name: overlap-bot
+          # DO NOT SYNC YET — sha-22c3710 is the first Postgres-era build
+          # (has DATABASE_URL, dbmate, no SQLite), but it still can't run:
+          # it was built from Overlap main before OVERLAP-29 (missing
+          # __main__.py — `python -m overlap` fails outright) merged. Bump
+          # this tag once Overlap-Premium rebuilds after that PR lands. See
+          # the PR description for the full sequencing.
+          image: ghcr.io/smithlabs-io/overlap-premium:sha-22c3710
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "overlap"]
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: overlap-db-role
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: overlap-db-role
+                  key: password
+            - name: DATABASE_URL
+              value: "postgresql://$(DB_USER):$(DB_PASSWORD)@homelab-pg-rw.cnpg.svc.cluster.local:5432/overlap"
+          envFrom:
+            - secretRef:
+                name: discord-token
+            - configMapRef:
+                name: overlap-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: overlap-migrate
+  namespace: overlap
+  annotations:
+    # Runs before this wave's other resources apply, and gets deleted and
+    # recreated on every sync so it actually runs migrations each time rather
+    # than being skipped as already-existing.
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: overlap-premium-deploy-key
+      containers:
+        - name: migrate
+          # Same image and version gate as deployment-bot.yaml/deployment-web.yaml.
+          image: ghcr.io/smithlabs-io/overlap-premium:sha-22c3710
+          imagePullPolicy: IfNotPresent
+          command: ["./migrate.sh"]
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: overlap-db-role
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: overlap-db-role
+                  key: password
+            - name: DATABASE_URL
+              value: "postgresql://$(DB_USER):$(DB_PASSWORD)@homelab-pg-rw.cnpg.svc.cluster.local:5432/overlap"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

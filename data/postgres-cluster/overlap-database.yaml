@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: overlap
+  namespace: cnpg
+spec:
+  cluster:
+    name: homelab-pg
+  name: overlap
+  owner: overlap
+  ensure: present
+  # Retain, not delete: this CRD only controls whether CNPG considers the
+  # database "managed", not whether Overlap's data survives a mistake here.
+  databaseReclaimPolicy: retain

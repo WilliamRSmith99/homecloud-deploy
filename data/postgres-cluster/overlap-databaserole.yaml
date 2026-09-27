@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: overlap
+  namespace: cnpg
+spec:
+  cluster:
+    name: homelab-pg
+  name: overlap
+  ensure: present
+  login: true
+  passwordSecret:
+    name: overlap-db-role
+  # No createdb/createrole/superuser — this role only ever owns its own database.
