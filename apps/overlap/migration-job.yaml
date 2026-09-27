@@ -1,14 +1,35 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: overlap-migrate
+  # Named after the image tag, on purpose — see "Why not a hook" below.
+  #
+  # When bumping the image tag in this directory, rename this Job to match
+  # (same suffix as deployment-bot.yaml / deployment-web.yaml's tag).
+  name: overlap-migrate-f43558c
   namespace: overlap
   annotations:
-    # Runs before this wave's other resources apply, and gets deleted and
-    # recreated on every sync so it actually runs migrations each time rather
-    # than being skipped as already-existing.
-    argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    # A resource-level sync-wave (distinct from the Application-level one in
+    # bootstrap/applications/overlap.yaml) makes Argo wait for this Job to
+    # reach Healthy (Job Completed) before syncing wave 0 — the Deployments —
+    # same ordering guarantee a PreSync hook would give, without being a hook.
+    argocd.argoproj.io/sync-wave: "-1"
+  # Why not a hook: a PreSync hook Job re-runs on every sync of this
+  # Application, for ANY reason — including changes that have nothing to do
+  # with Overlap's schema (a resource-limit tweak, self-heal correcting a
+  # manual edit elsewhere in the namespace). dbmate up is idempotent, so
+  # that's not destructive, but it's still an unnecessary live-database step
+  # and an extra failure point on unrelated changes.
+  #
+  # A plain resource only gets touched when its own spec actually differs
+  # from what's live — and a Job's pod template is immutable after creation,
+  # so a FIXED name can't be updated in place when the image changes anyway
+  # (Argo would hit an immutable-field error on the next tag bump). Naming
+  # this Job after the tag solves both: bumping the image here always means a
+  # new name too, so Argo creates a fresh Job (runs once) instead of trying
+  # to mutate the old one; on any sync where the tag hasn't changed, this
+  # resource is identical to what's live and Argo does nothing to it.
+  # prune=true removes the completed Job from the previous version once its
+  # name no longer appears here.
 spec:
   backoffLimit: 2
   template:
