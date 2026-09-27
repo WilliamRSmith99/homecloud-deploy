@@ -3,7 +3,6 @@ kind: Kustomization
 namespace: cloudflared
 resources:
   - namespaces.yaml
-  - configmap.yaml
   - deployment.yaml
   # cloudflared-tunnel-token SealedSecret is deliberately not here yet — see
   # the HC-30 PR description. Argo will report this Application degraded

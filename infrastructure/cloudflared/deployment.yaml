@@ -36,14 +36,19 @@ spec:
           args:
             - tunnel
             - --no-autoupdate
-            - --config
-            - /etc/cloudflared/config/config.yml
             - --metrics
             - 0.0.0.0:2000
             - run
           env:
             # Cloudflare terminates TLS at the edge; this tunnel needs no
             # cert-manager Certificate or Secret of its own.
+            #
+            # No --config/ingress ConfigMap: a token-authenticated tunnel is
+            # remotely managed — cloudflared fetches its ingress rules from
+            # Cloudflare and silently ignores a local config file's ingress
+            # section (confirmed: cloudflare/cloudflared#1029). The real
+            # ingress rules live in exosphere-terraform's
+            # cloudflare_zero_trust_tunnel_cloudflared_config resource.
             - name: TUNNEL_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -52,10 +57,6 @@ spec:
           ports:
             - name: metrics
               containerPort: 2000
-          volumeMounts:
-            - name: config
-              mountPath: /etc/cloudflared/config
-              readOnly: true
           resources:
             requests:
               cpu: 50m
@@ -75,7 +76,3 @@ spec:
               port: metrics
             initialDelaySeconds: 5
             periodSeconds: 10
-      volumes:
-        - name: config
-          configMap:
-            name: cloudflared-config
