@@ -24,7 +24,7 @@ spec:
         - name: overlap-premium-deploy-key
       containers:
         - name: overlap-bot
-          image: ghcr.io/smithlabs-io/overlap-premium:sha-946ebb4
+          image: ghcr.io/smithlabs-io/overlap-premium:sha-02b090a
           imagePullPolicy: IfNotPresent
           command: [ "python", "-m", "overlap" ]
           env:

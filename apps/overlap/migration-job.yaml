@@ -5,7 +5,7 @@ metadata:
   #
   # When bumping the image tag in this directory, rename this Job to match
   # (same suffix as deployment-bot.yaml / deployment-web.yaml's tag).
-  name: overlap-migrate-946ebb4
+  name: overlap-migrate-02b090a
   namespace: overlap
   annotations:
     # A resource-level sync-wave (distinct from the Application-level one in
@@ -40,7 +40,7 @@ spec:
       containers:
         - name: migrate
           # Same image and version gate as deployment-bot.yaml/deployment-web.yaml.
-          image: ghcr.io/smithlabs-io/overlap-premium:sha-946ebb4
+          image: ghcr.io/smithlabs-io/overlap-premium:sha-02b090a
           imagePullPolicy: IfNotPresent
           command: [ "./migrate.sh" ]
           env:
