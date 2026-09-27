@@ -5,7 +5,7 @@ metadata:
   #
   # When bumping the image tag in this directory, rename this Job to match
   # (same suffix as deployment-bot.yaml / deployment-web.yaml's tag).
-  name: overlap-migrate-f43558c
+  name: overlap-migrate-946ebb4
   namespace: overlap
   annotations:
     # A resource-level sync-wave (distinct from the Application-level one in
