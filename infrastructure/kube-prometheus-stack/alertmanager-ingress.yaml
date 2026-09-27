@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  annotations:
+    tailscale.com/hostname: alerts   # pins the MagicDNS name — this is the "static" part
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - alerts            # operator expands to alerts.<tailnet>.ts.net for the cert
+  rules:
+    - host: alerts
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kube-prometheus-stack-alertmanager
+                port:
+                  number: 9093

@@ -5,6 +5,8 @@ resources:
   - namespaces.yaml
   - prometheusrule.yaml
   - discord-webhook-sealedsecret.yaml
+  - prometheus-ingress.yaml
+  - alertmanager-ingress.yaml
 helmCharts:
   - name: kube-prometheus-stack
     repo: oci://ghcr.io/prometheus-community/charts

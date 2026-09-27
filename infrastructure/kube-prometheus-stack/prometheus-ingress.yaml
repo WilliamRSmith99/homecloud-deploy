@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus
+  namespace: monitoring
+  annotations:
+    tailscale.com/hostname: prometheus   # pins the MagicDNS name — this is the "static" part
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - prometheus            # operator expands to prometheus.<tailnet>.ts.net for the cert
+  rules:
+    - host: prometheus
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kube-prometheus-stack-prometheus
+                port:
+                  number: 9090
