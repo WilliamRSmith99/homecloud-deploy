@@ -4,6 +4,4 @@ namespace: cloudflared
 resources:
   - namespaces.yaml
   - deployment.yaml
-  # cloudflared-tunnel-token SealedSecret is deliberately not here yet — see
-  # the HC-30 PR description. Argo will report this Application degraded
-  # until a human seals the real Terraform tunnel-token output and adds it.
+  - cloudflared-tunnel-token-SealedSecret.yaml
