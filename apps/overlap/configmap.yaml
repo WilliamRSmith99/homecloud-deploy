@@ -10,7 +10,4 @@ data:
   # overlap-premium's own default — set explicitly here so it's visible in
   # git rather than an implicit fallback.
   BILLING_MODE: "votes"
-  # No public HTTPS path exists yet (see kb/data-flow.md — Cloudflare Tunnel
-  # is planned, not built), so vote-link click tracking has nowhere public to
-  # point. Set this once that path exists.
-  # WEB_BASE_URL: "https://your-domain.example"
+  WEB_BASE_URL: "https://api.smithlabs.io"
